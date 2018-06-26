@@ -13,7 +13,19 @@ ds_time = 0.1;
 w = 0.04;
 first_support_foot = 'left'; %doesn't work
 
-parameters1 = Parameters(0.26, 0.01, 0.2, 0.1, first_support_foot, 0.6, 60, 0.04, 0.125, 0.05, 0.025, 'periodic');
+parameters1 = Parameters(0.26, 0.01, 0.2, 0.1, first_support_foot, 0.6, 60, 0.04, 0.125, 0.05, 0.025, 'periodic')
+hCom 0.26
+delta 0.01
+singleSupportDuration 0.2
+doubleSupportDuration 0.1
+firstSupportFoot first_support_foot
+predictionTime 0.6
+nSamples 60
+footSize 0.04
+feasibilityL 0.125
+feasibilityX 0.05
+feasibilityY 0.025
+tailType 'periodic'
 
 sim_time = 30;
 N_sim = round(sim_time/delta);
@@ -54,7 +66,10 @@ disp('Simulation cycle')
 
 for i = 1 : N_sim 
 
-    solv1.cycle(i);
+    exit_var = solv1.cycle(i);
+    if exit_var
+        break
+    end
     
     % plot
     clf

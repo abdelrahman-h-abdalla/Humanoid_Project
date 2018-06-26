@@ -350,8 +350,10 @@ classdef Solver < dynamicprops
                 obj.Aeq(2,obj.W+i) = obj.Aeq(1,i);
             end
             
-            swing_foot_velocity_x = [0 ; obj.pred_zx_foot(2:end) - obj.pred_zx_foot(1:end-1)]/obj.delta;
-            swing_foot_velocity_y = [0 ; obj.pred_zy_foot(2:end) - obj.pred_zy_foot(1:end-1)]/obj.delta;
+            %swing_foot_velocity_x = [0 ; obj.pred_zx_foot(2:end) - obj.pred_zx_foot(1:end-1)]/obj.delta;
+            %swing_foot_velocity_y = [0 ; obj.pred_zy_foot(2:end) - obj.pred_zy_foot(1:end-1)]/obj.delta;
+            swing_foot_velocity_x = zeros(60,1);
+            swing_foot_velocity_y = zeros(60,1);
             
             obj.beq = [obj.x + obj.xd/obj.omega - obj.zx; ...
                        obj.y + obj.yd/obj.omega - obj.zy ]...
@@ -397,7 +399,8 @@ classdef Solver < dynamicprops
             f = [zeros(obj.W,1);zeros(obj.W,1);f_fs1;f_fs2];
         end
         
-        function cycle(obj,iter)           
+        function exit_var = cycle(obj,iter)           
+            exit_var = false;
             % QP options
             options = optimset('Algorithm','interior-point-convex','Display','off');
             
@@ -512,7 +515,7 @@ classdef Solver < dynamicprops
                 pos_rel = new_rot'*rot*([obj.x_l;obj.y_l] - [obj.zd(2*obj.W+1);obj.zd(2*obj.W+obj.M+1)]);
                 vel_rel = new_rot'*rot*[obj.xd_l;obj.yd_l];
                 zmp_rel = new_rot'*rot*([obj.zx_l;obj.zy_l] - [obj.zd(2*obj.W+1);obj.zd(2*obj.W+obj.M+1)]);
-
+                
                 obj.x_l = pos_rel(1);
                 obj.y_l = pos_rel(2);
                 obj.xd_l = vel_rel(1);
@@ -580,6 +583,7 @@ classdef Solver < dynamicprops
             AQ = obj.A_zmp;
             bQ = obj.b_zmp;
             
+            obj.footsteps_are_preassigned = 1;
             % Add bounding boxes on the footsteps if AFP is on
             if obj.footsteps_are_preassigned == 0
                 obj.gen_footstep_constraints()
@@ -611,6 +615,11 @@ classdef Solver < dynamicprops
 %             end
             
             % Cost function
+            if size(obj.preassigned_footsteps_matrix,1) == 1
+                disp('stop');
+                exit_var = true;
+                return;
+            end
             obj.gen_cost_function()
             
             % Solver
